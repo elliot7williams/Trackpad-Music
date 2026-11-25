@@ -1,0 +1,356 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		A00B00000000000000000003 /* Assets.xcassets in Resources */ = {
+			isa = PBXBuildFile;
+			fileRef = A00B00000000000000000004 /* Assets.xcassets */;
+		};
+		A00B00000000000000000004 /* Assets.xcassets */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = folder.assetcatalog;
+			path = Assets.xcassets;
+			sourceTree = "<group>";
+		};
+        A00B00000000000000000001 /* ReactiveSynth.swift in Sources */ = {
+            isa = PBXBuildFile;
+            fileRef = A00B00000000000000000002 /* ReactiveSynth.swift */;
+        };
+        A00B00000000000000000002 /* ReactiveSynth.swift */ = {
+            isa = PBXFileReference;
+            lastKnownFileType = sourcecode.swift;
+            path = ReactiveSynth.swift;
+            sourceTree = "<group>";
+        };
+		B9C5365EB83A10A670111EC2 /* TrackpadMusicApp.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 715C5FCBC9F83E8F815136C4 /* TrackpadMusicApp.swift */;
+		};
+		467606086CCB28DFDB20F534 /* HapticEngine.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9EFE4003CEB6F6AB6DF86614 /* HapticEngine.swift */;
+		};
+		FD47D2B49AB3978C191419D5 /* MusicPlayback.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = E50592FA0CC716BF5CB56883 /* MusicPlayback.swift */;
+		};
+		DDD58FCC1E3C3052C1E16BA5 /* AVFoundation.framework in Frameworks */ = {
+			isa = PBXBuildFile;
+			fileRef = 4444D8AA7FB255345EDE563D /* AVFoundation.framework */;
+			settings = { ATTRIBUTES = (Required, ); };
+		};
+		715C5FCBC9F83E8F815136C4 /* TrackpadMusicApp.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = TrackpadMusicApp.swift;
+			sourceTree = "<group>";
+		};
+		9EFE4003CEB6F6AB6DF86614 /* HapticEngine.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = HapticEngine.swift;
+			sourceTree = "<group>";
+		};
+		E50592FA0CC716BF5CB56883 /* MusicPlayback.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MusicPlayback.swift;
+			sourceTree = "<group>";
+		};
+		4444D8AA7FB255345EDE563D /* AVFoundation.framework */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = AVFoundation.framework;
+			path = System/Library/Frameworks/AVFoundation.framework;
+			sourceTree = SDKROOT;
+		};
+		2D1BDCDDF6B2A3571914AE38 /* Trackpad Music.app */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = "Trackpad Music.app";
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A71469A9953F3732A60ED225 /* TrackpadMusic */ = {
+			isa = PBXGroup;
+			children = (
+				715C5FCBC9F83E8F815136C4 /* TrackpadMusicApp.swift */,
+				9EFE4003CEB6F6AB6DF86614 /* HapticEngine.swift */,
+				E50592FA0CC716BF5CB56883 /* MusicPlayback.swift */,
+				A00B00000000000000000002 /* ReactiveSynth.swift */,
+				A00B00000000000000000004 /* Assets.xcassets */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		4BD4FBD0FA9B46F89162A08A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4444D8AA7FB255345EDE563D /* AVFoundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		09C58B7302EDA1DA079F4969 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2D1BDCDDF6B2A3571914AE38 /* Trackpad Music.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1412943FD0FE40EDD1FF28F9 /* main */ = {
+			isa = PBXGroup;
+			children = (
+				A71469A9953F3732A60ED225 /* TrackpadMusic */,
+				4BD4FBD0FA9B46F89162A08A /* Frameworks */,
+				09C58B7302EDA1DA079F4969 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FC51F675CFA04504BC9B299A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B9C5365EB83A10A670111EC2 /* TrackpadMusicApp.swift in Sources */,
+				467606086CCB28DFDB20F534 /* HapticEngine.swift in Sources */,
+				FD47D2B49AB3978C191419D5 /* MusicPlayback.swift in Sources */,
+				A00B00000000000000000001 /* ReactiveSynth.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5C52B4B026E2D3577270DA12 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DDD58FCC1E3C3052C1E16BA5 /* AVFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A08C54AF8A42B43E05313183 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00B00000000000000000003 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4F319074B987AF7778981010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFS_STRING = en;
+				MACOSX_DEPLOYMENT_TARGET = "13.0";
+				SDKROOT = macosx;
+				SWIFT_VERSION = "5.0";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = "0";
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = -Onone;
+			};
+			name = Debug;
+		};
+		4E345DDC2CB2B8EDDB0855A9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFS_STRING = en;
+				MACOSX_DEPLOYMENT_TARGET = "13.0";
+				SDKROOT = macosx;
+				SWIFT_VERSION = "5.0";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf-with-dsym;
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = -O;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A00B00000000000000000005 /* AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFS_STRING = en;
+				MACOSX_DEPLOYMENT_TARGET = "13.0";
+				SDKROOT = macosx;
+				SWIFT_VERSION = "5.0";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf-with-dsym;
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = -O;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = AppStore;
+		};
+		53AC8D7FEB7D61E8AA08D107 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				PRODUCT_NAME = "Trackpad Music";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = "2";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Trackpad Music";
+				INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.music;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)", "@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = "13.0";
+				MARKETING_VERSION = "1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = com.elliotwilliams.TrackpadMusic;
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				SWIFT_VERSION = "5.0";
+				CODE_SIGN_IDENTITY = -;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_OPTIMIZATION_LEVEL = "0";
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = -Onone;
+			};
+			name = Debug;
+		};
+		B437A149FC54FFA705B175DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				PRODUCT_NAME = "Trackpad Music";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = "2";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Trackpad Music";
+				INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.music;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)", "@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = "13.0";
+				MARKETING_VERSION = "1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = com.elliotwilliams.TrackpadMusic;
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				SWIFT_VERSION = "5.0";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf-with-dsym;
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = -O;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A00B00000000000000000006 /* AppStore */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				PRODUCT_NAME = "Trackpad Music";
+				CODE_SIGN_STYLE = Automatic;
+                CODE_SIGN_ENTITLEMENTS = TrackpadMusic-AppStore.entitlements;
+                CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+                ENABLE_APP_SANDBOX = YES;
+                ENABLE_USER_SELECTED_FILES = readonly;
+                SWIFT_ACTIVE_COMPILATION_CONDITIONS = APP_STORE;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = "2";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Trackpad Music";
+				INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.music;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)", "@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = "13.0";
+				MARKETING_VERSION = "1.0";
+				PRODUCT_BUNDLE_IDENTIFIER = com.elliotwilliams.TrackpadMusic;
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				SWIFT_VERSION = "5.0";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf-with-dsym;
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = -O;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = AppStore;
+		};
+		C379475AD854BAD1A9820E4D /* Build configuration list for PBXProject "TrackpadMusic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4F319074B987AF7778981010 /* Debug */,
+				4E345DDC2CB2B8EDDB0855A9 /* Release */,
+				A00B00000000000000000005 /* AppStore */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FDE815274CC79B2D701DEAFC /* Build configuration list for PBXNativeTarget "TrackpadMusic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				53AC8D7FEB7D61E8AA08D107 /* Debug */,
+				B437A149FC54FFA705B175DA /* Release */,
+				A00B00000000000000000006 /* AppStore */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		08F20D8CA064EF89EC3E8342 /* TrackpadMusic */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FDE815274CC79B2D701DEAFC /* Build configuration list for PBXNativeTarget "TrackpadMusic" */;
+			buildPhases = (
+				FC51F675CFA04504BC9B299A /* Sources */,
+				5C52B4B026E2D3577270DA12 /* Frameworks */,
+				A08C54AF8A42B43E05313183 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TrackpadMusic;
+			productName = TrackpadMusic;
+			productReference = 2D1BDCDDF6B2A3571914AE38 /* Trackpad Music.app */;
+			productType = "com.apple.product-type.application";
+		};
+		42E5FCA542B337B1B9BFAA35 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					08F20D8CA064EF89EC3E8342 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = C379475AD854BAD1A9820E4D /* Build configuration list for PBXProject "TrackpadMusic" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1412943FD0FE40EDD1FF28F9;
+			productRefGroup = 09C58B7302EDA1DA079F4969 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				08F20D8CA064EF89EC3E8342 /* TrackpadMusic */,
+			);
+		};
+	};
+	rootObject = 42E5FCA542B337B1B9BFAA35 /* Project object */;
+}
