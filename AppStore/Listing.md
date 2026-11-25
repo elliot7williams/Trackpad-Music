@@ -7,7 +7,7 @@
 | Primary category | Music |
 | Primary language | English (U.S.) |
 | Version | 1.0 |
-| Build | 2 |
+| Build | 4 |
 | Bundle ID | com.elliotwilliams.TrackpadMusic |
 | Keywords | waveform,audio,visualizer,bass,synth,local,music,player,spectrum,offline |
 

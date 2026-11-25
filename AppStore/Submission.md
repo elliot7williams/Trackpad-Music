@@ -8,10 +8,10 @@ No account or special hardware is required. Open the supplied Bass Pulse WAV (or
 
 ## Before upload
 
-- Select your Apple Developer team in Xcode, register or confirm the bundle ID, and create the macOS app record in App Store Connect.
+- Select your Apple Developer team in Xcode, register or confirm the bundle ID, enable its MusicKit App Service, and create the macOS app record in App Store Connect.
 - Publish the privacy policy and support content at public HTTPS URLs. Add a public support contact to the support page and enter both URLs in App Store Connect.
 - Enter the listing fields and upload the two screenshots. Provide private App Review contact information and attach the demo WAV if desired.
-- Complete the age-rating, privacy, accessibility, export-compliance, rights, pricing, and availability questionnaires for the actual submission. The current code has no analytics, ads, accounts, or network client. Review the final archive and any added integrations before declaring data collection.
+- Complete the age-rating, privacy, accessibility, export-compliance, rights, pricing, and availability questionnaires for the actual submission. The app has no analytics, ads, or first-party accounts. Apple Music handles cloud-library requests and streams through MusicKit. Review the final archive and any added integrations before declaring data collection.
 - Archive and validate with an App Store Connect–accepted Xcode version, then upload the signed archive. Set the release timing in App Store Connect.
 
 References: [App Review guidelines](https://developer.apple.com/app-store/review/guidelines/), [platform metadata](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information/), [screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/), [app privacy](https://developer.apple.com/app-store/app-privacy-details/), and [uploading builds](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/).

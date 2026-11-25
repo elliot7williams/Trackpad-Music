@@ -31,7 +31,7 @@ struct MusicFrame {
     let waveform: [Float]
 
     // One tone per band keeps the motor workload bounded.
-    func output(for mode: MusicHaptics) -> [(hz: Double, amp: Double)] {
+    func output(for mode: MusicHaptics, gain: Double = 1) -> [(hz: Double, amp: Double)] {
         let tones: [(Tone, Double)]
         switch mode {
         case .off: return []
@@ -39,7 +39,7 @@ struct MusicFrame {
         case .wide: tones = [(bass, 0.95), (mids, 0.75), (highs, 0.55)]
         }
         return tones.compactMap { tone, weight in
-            let amp = tone.strength * weight
+            let amp = tone.strength * weight * gain
             return amp >= 0.008 ? (tone.hz, amp) : nil
         }
     }
@@ -51,94 +51,122 @@ enum MusicAnalysis {
         let frames: [MusicFrame]
     }
 
-    private static let targetFrameDuration = 0.032
-
-    // Window each frame and measure stereo channels independently so
-    // instruments panned left or right, or out of phase, still contribute.
     static func read(_ url: URL, cancel: StopFlag) throws -> Result {
         let file = try AVAudioFile(forReading: url, commonFormat: .pcmFormatFloat32, interleaved: false)
         let format = file.processingFormat
-        let rate = format.sampleRate
-        let channels = min(2, Int(format.channelCount))
-        guard rate.isFinite, (1...768_000).contains(rate), channels > 0 else {
+        guard let analyzer = MusicFrameAnalyzer(format: format),
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(analyzer.frameSize)) else {
             throw CocoaError(.fileReadCorruptFile)
         }
+
+        var frames: [MusicFrame] = []
+        let fileLength = file.length
+        while !cancel.isSet, file.framePosition < fileLength {
+            let remaining = fileLength - file.framePosition
+            try file.read(into: buffer, frameCount: AVAudioFrameCount(min(Int64(analyzer.frameSize), remaining)))
+            guard let frame = analyzer.analyze(buffer) else { break }
+            frames.append(frame)
+        }
+        return Result(frameDuration: analyzer.frameDuration, frames: frames)
+    }
+}
+
+// A single consumer owns each analyzer and its reusable FFT buffers.
+final class MusicFrameAnalyzer {
+    let frameSize: Int
+    let frameDuration: Double
+    private let channels: Int
+    private let stride: Int
+    private let count: Int
+    private let logSize: vDSP_Length
+    private let fft: FFTSetupD
+    private let binWidth: Double
+    private let bins: [Range<Int>]
+    private let window: [Double]
+    private let windowGain: Double
+    private var real: [Double]
+    private var imag: [Double]
+    private var power: [Double]
+
+    init?(format: AVAudioFormat) {
+        let rate = format.sampleRate
+        channels = min(2, Int(format.channelCount))
+        guard rate.isFinite, (1...768_000).contains(rate), channels > 0,
+              format.commonFormat == .pcmFormatFloat32, !format.isInterleaved else { return nil }
 
         let stride = max(1, Int(rate / 12_000))
-        let count = max(2, Int(rate * targetFrameDuration) / stride)
-        let frameSize = count * stride
+        let count = max(2, Int(rate * 0.032) / stride)
+        self.stride = stride
+        self.count = count
+        frameSize = count * stride
+        frameDuration = Double(frameSize) / rate
         // Zero padding makes the frequency grid finer without lengthening the frame.
-        let logSize = vDSP_Length(ceil(log2(Double(2 * count))))
+        logSize = vDSP_Length(ceil(log2(Double(2 * count))))
         let fftSize = 1 << logSize
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(frameSize)),
-              let fft = vDSP_create_fftsetupD(logSize, FFTRadix(kFFTRadix2)) else {
-            throw CocoaError(.fileReadCorruptFile)
-        }
-        defer { vDSP_destroy_fftsetupD(fft) }
+        guard let fft = vDSP_create_fftsetupD(logSize, FFTRadix(kFFTRadix2)) else { return nil }
+        self.fft = fft
 
         let binWidth = rate / Double(stride * fftSize)
+        self.binWidth = binWidth
         let bands: [Range<Double>] = [28..<180, 180..<1800, 1800..<4000]
-        let bins = bands.map { band in
+        bins = bands.map { band in
             let begin = Int(ceil(band.lowerBound / binWidth))
             let end = min(fftSize / 2, Int(ceil(band.upperBound / binWidth)))
             return begin..<max(begin, end)
         }
         let window = (0..<count).map { 0.5 - 0.5 * cos(2 * .pi * Double($0) / Double(count - 1)) }
-        let windowGain = max(1, window.reduce(0, +))
-        var real = [Double](repeating: 0, count: fftSize)
-        var imag = real
-        var power = [Double](repeating: 0, count: fftSize / 2)
-        var frames: [MusicFrame] = []
-        let fileLength = file.length
-        while !cancel.isSet, file.framePosition < fileLength {
-            let remaining = fileLength - file.framePosition
-            let requested = AVAudioFrameCount(min(Int64(frameSize), remaining))
-            try file.read(into: buffer, frameCount: requested)
-            let length = Int(buffer.frameLength)
-            guard length > 0, let data = buffer.floatChannelData else { break }
-            for i in power.indices { power[i] = 0 }
-            for channel in 0..<channels {
-                let source = data[channel]
-                for i in 0..<count {
-                    let begin = i * stride
-                    var sum = 0.0
-                    if begin < length {
-                        for j in begin..<min(begin + stride, length) { sum += Double(source[j]) }
-                    }
-                    real[i] = sum * window[i] / Double(stride)
-                }
-                for i in count..<fftSize { real[i] = 0 }
-                for i in imag.indices { imag[i] = 0 }
-                real.withUnsafeMutableBufferPointer { realBuffer in
-                    imag.withUnsafeMutableBufferPointer { imagBuffer in
-                        var split = DSPDoubleSplitComplex(realp: realBuffer.baseAddress!, imagp: imagBuffer.baseAddress!)
-                        vDSP_fft_zipD(fft, &split, 1, logSize, FFTDirection(FFT_FORWARD))
-                    }
-                }
-                for i in power.indices {
-                    power[i] += real[i] * real[i] + imag[i] * imag[i]
-                }
-            }
+        self.window = window
+        windowGain = max(1, window.reduce(0, +))
+        real = [Double](repeating: 0, count: fftSize)
+        imag = [Double](repeating: 0, count: fftSize)
+        power = [Double](repeating: 0, count: fftSize / 2)
+    }
 
-            func peak(in band: Range<Int>) -> MusicFrame.Tone {
-                guard let index = band.max(by: { power[$0] < power[$1] }), power[index].isFinite else {
-                    return .init(hz: 0, strength: 0)
+    deinit { vDSP_destroy_fftsetupD(fft) }
+
+    func analyze(_ buffer: AVAudioPCMBuffer) -> MusicFrame? {
+        let length = min(frameSize, Int(buffer.frameLength))
+        guard length > 0, let data = buffer.floatChannelData else { return nil }
+        for i in power.indices { power[i] = 0 }
+        // Analyze channels separately so out-of-phase stereo does not cancel out.
+        for channel in 0..<channels {
+            let source = data[channel]
+            for i in 0..<count {
+                let begin = i * stride
+                var sum = 0.0
+                if begin < length {
+                    for j in begin..<min(begin + stride, length) { sum += Double(source[j]) }
                 }
-                let strength = sqrt(power[index] / Double(channels)) * 2 / windowGain
-                return .init(hz: Double(index) * binWidth, strength: strength)
+                real[i] = sum * window[i] / Double(stride)
             }
-            let waveform = (0..<96).map { i -> Float in
-                let sample = i * frameSize / 96
-                guard sample < length else { return 0 }
-                let left = data[0][sample]
-                let right = channels > 1 ? data[1][sample] : left
-                let value = abs(left) >= abs(right) ? left : right
-                return value.isFinite ? min(1, max(-1, value)) : 0
+            for i in count..<real.count { real[i] = 0 }
+            for i in imag.indices { imag[i] = 0 }
+            real.withUnsafeMutableBufferPointer { realBuffer in
+                imag.withUnsafeMutableBufferPointer { imagBuffer in
+                    var split = DSPDoubleSplitComplex(realp: realBuffer.baseAddress!, imagp: imagBuffer.baseAddress!)
+                    vDSP_fft_zipD(fft, &split, 1, logSize, FFTDirection(FFT_FORWARD))
+                }
             }
-            frames.append(.init(bass: peak(in: bins[0]), mids: peak(in: bins[1]),
-                                highs: peak(in: bins[2]), waveform: waveform))
+            for i in power.indices { power[i] += real[i] * real[i] + imag[i] * imag[i] }
         }
-        return Result(frameDuration: Double(frameSize) / rate, frames: frames)
+
+        func peak(in band: Range<Int>) -> MusicFrame.Tone {
+            guard let index = band.max(by: { power[$0] < power[$1] }), power[index].isFinite else {
+                return .init(hz: 0, strength: 0)
+            }
+            let strength = sqrt(power[index] / Double(channels)) * 2 / windowGain
+            return .init(hz: Double(index) * binWidth, strength: strength)
+        }
+        let waveform = (0..<96).map { i -> Float in
+            let sample = i * frameSize / 96
+            guard sample < length else { return 0 }
+            let left = data[0][sample]
+            let right = channels > 1 ? data[1][sample] : left
+            let value = abs(left) >= abs(right) ? left : right
+            return value.isFinite ? min(1, max(-1, value)) : 0
+        }
+        return .init(bass: peak(in: bins[0]), mids: peak(in: bins[1]),
+                     highs: peak(in: bins[2]), waveform: waveform)
     }
 }
 
@@ -193,6 +221,15 @@ final class MusicPlayback: ObservableObject {
     private var lastFrame: Int?
     private var lastVisualFrame: Int?
     private var motorBusy = false
+#if !APP_STORE
+    @Published private(set) var microphoneEnabled = false
+    @Published private(set) var microphoneListening = false
+    @Published private(set) var microphoneError: String?
+    private var cloudPlaying = false
+    private var microphoneRequest: Task<Void, Never>?
+    private var microphoneInput: MicrophoneHapticsInput?
+    private var microphoneTimer: Timer?
+#endif
     @Published private(set) var connecting = false
     @Published var preferExternal = false
     var synthIsPlaying: Bool { synthEnabled && speakersEnabled && synthPlayer?.isPlaying == true }
@@ -202,6 +239,77 @@ final class MusicPlayback: ObservableObject {
     }
 
 #if !APP_STORE
+    func setMicrophoneEnabled(_ enabled: Bool) {
+        microphoneEnabled = enabled
+        microphoneError = nil
+        updateMicrophone()
+    }
+
+    func setCloudPlaying(_ playing: Bool) {
+        guard playing != cloudPlaying else { return }
+        cloudPlaying = playing
+        updateMicrophone()
+    }
+
+    private func updateMicrophone() {
+        guard microphoneEnabled, cloudPlaying else {
+            stopMicrophone()
+            return
+        }
+        guard microphoneInput == nil, microphoneRequest == nil else { return }
+        microphoneRequest = Task { @MainActor [weak self] in
+            let allowed = await AVCaptureDevice.requestAccess(for: .audio)
+            guard let self, !Task.isCancelled else { return }
+            microphoneRequest = nil
+            guard allowed else {
+                microphoneEnabled = false
+                microphoneError = "Allow microphone access in System Settings → Privacy & Security → Microphone."
+                return
+            }
+            do {
+                microphoneInput = try MicrophoneHapticsInput()
+                invalidateMotorFrame()
+                microphoneListening = true
+                startMicrophonePolling()
+            } catch {
+                microphoneEnabled = false
+                microphoneError = "Couldn’t start the microphone. \(error.localizedDescription)"
+            }
+        }
+    }
+
+    private func startMicrophonePolling() {
+        let timer = Timer(timeInterval: 1.0 / 60, repeats: true) { [weak self] _ in self?.readMicrophone() }
+        microphoneTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func stopMicrophone() {
+        microphoneRequest?.cancel()
+        microphoneRequest = nil
+        microphoneTimer?.invalidate()
+        microphoneTimer = nil
+        if let microphoneInput {
+            microphoneInput.stop()
+            self.microphoneInput = nil
+            invalidateMotorFrame()
+            outputLevel = 0
+        }
+        microphoneListening = false
+    }
+
+    private func readMicrophone() {
+        guard let microphoneInput else { return }
+        guard microphoneInput.isRunning else {
+            setMicrophoneEnabled(false)
+            microphoneError = "The audio input changed or stopped. Turn Microphone feedback on to reconnect."
+            return
+        }
+        guard let frame = microphoneInput.takeFrame() else { return }
+        // Limit motor strength because the microphone can also hear the trackpad.
+        sendHaptics(frame, duration: microphoneInput.frameDuration, gain: 3, maximumLevel: 0.45)
+    }
+
     func connectTrackpad() {
         guard !connecting else { return }
         connecting = true
@@ -216,6 +324,11 @@ final class MusicPlayback: ObservableObject {
 #endif
 
     deinit {
+#if !APP_STORE
+        microphoneRequest?.cancel()
+        microphoneTimer?.invalidate()
+        microphoneInput?.stop()
+#endif
         timer?.invalidate()
         analysis.set()
         motorSession.set()
@@ -223,7 +336,8 @@ final class MusicPlayback: ObservableObject {
         scopedURL?.stopAccessingSecurityScopedResource()
     }
 
-    func open(_ url: URL) {
+    @discardableResult
+    func open(_ url: URL, displayTitle: String? = nil) -> Bool {
         let access = url.startAccessingSecurityScopedResource()
         let next: AVAudioPlayer
         do {
@@ -234,7 +348,7 @@ final class MusicPlayback: ObservableObject {
         } catch {
             if access { url.stopAccessingSecurityScopedResource() }
             self.error = "Couldn’t open \(url.lastPathComponent). Choose a local audio file that macOS can play."
-            return
+            return false
         }
 
         pause()
@@ -246,7 +360,7 @@ final class MusicPlayback: ObservableObject {
         scopedURL?.stopAccessingSecurityScopedResource()
         scopedURL = access ? url : nil
         updateSpeakerLevels()
-        title = url.deletingPathExtension().lastPathComponent
+        title = displayTitle ?? url.deletingPathExtension().lastPathComponent
         duration = next.duration
         position = 0
         error = nil
@@ -276,14 +390,22 @@ final class MusicPlayback: ObservableObject {
                 }
             }
         }
+        return true
     }
 
     func reportImportFailure(_ error: Error) {
         self.error = error.localizedDescription
     }
 
+    func clearError() {
+        error = nil
+    }
+
     func play() {
         guard let player, !isPlaying else { return }
+#if !APP_STORE
+        setCloudPlaying(false)
+#endif
         motorSession = StopFlag()
         lastFrame = nil
         if position >= duration { seek(to: 0) }
@@ -352,31 +474,36 @@ final class MusicPlayback: ObservableObject {
             liveFrame = frame
         }
 #if !APP_STORE
+        guard lastFrame != index else { return }
+        lastFrame = index
+        // Shorten a late frame so its actuation ends near the next audio frame.
+        let remaining = Double(index + 1) * spectrum.frameDuration - time
+        sendHaptics(frame, duration: remaining)
+#endif
+    }
+
+#if !APP_STORE
+    private func sendHaptics(_ frame: MusicFrame, duration: Double, gain: Double = 1, maximumLevel: Double = 1) {
         guard engine.isConnected, !connecting, mode != .off, intensity > 0 else {
             outputLevel = 0
             return
         }
-        guard lastFrame != index, !motorBusy else { return }
-        lastFrame = index
-        let tones = frame.output(for: mode)
-        let level = min(1, sqrt(tones.reduce(0) { $0 + $1.amp }) * intensity)
+        let tones = frame.output(for: mode, gain: gain)
+        let level = min(maximumLevel, sqrt(tones.reduce(0) { $0 + $1.amp }) * intensity)
         outputLevel = level
-        guard !tones.isEmpty else { return }
+        guard !tones.isEmpty, duration > 0.005, !motorBusy else { return }
 
         let session = motorSession
         let engine = engine
-        // Shorten a late frame so its actuation ends near the next audio frame.
-        let remaining = Double(index + 1) * spectrum.frameDuration - time
-        guard remaining > 0.005 else { return }
         motorBusy = true
         motorQueue.async { [weak self] in
             if !session.isSet {
-                engine.play(tones, ms: remaining * 1000, level: Float(level))
+                engine.play(tones, ms: duration * 1000, level: Float(level))
             }
             DispatchQueue.main.async { [weak self] in self?.motorBusy = false }
         }
-#endif
     }
+#endif
 
     private func updateSpeakerLevels() {
         let mix = synthEnabled && synthPlayer != nil && speakersEnabled ? Float(synthMix) : 0
